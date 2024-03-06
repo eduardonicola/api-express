@@ -4,7 +4,18 @@ const port = 3000;
 
 // Rota padrão
 app.get('/', (req, res) => {
-    res.send('Bem-vindo ao Express.js!');
+    res.send('API EXPRESS');
+});
+//
+app.get('/:cor', (req, res) => {
+    const cores = ['azul','amarerlo','vermelho','roxo']
+    if(cores.includes(req.params.cor)){
+        res.send(`COR ${req.params.cor}`);
+        return
+    }
+
+    res.status(400).send( `${req.params.cor} Não é uma cor valida`)
+    
 });
 
 // Iniciar o servidor
