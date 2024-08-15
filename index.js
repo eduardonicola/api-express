@@ -1,35 +1,44 @@
 const express = require('express');
+const User = require('./User'); // Importando o modelo User
+const sequelize = require('./database'); // Importando a conexão do banco de dados
+
 const app = express();
-const port = 3000;
-app.use(express.json())
 
-// Rota padrão
-app.get('/', (req, res) => {
-    res.send('API EXPRESS');
+// Sincroniza o modelo com o banco de dados
+sequelize.sync().then(() => {
+  console.log('Banco de dados sincronizado');
 });
 
-app.get('/:cor', (req, res) => {
-    const cores = ['azul','amarerlo','vermelho','roxo']
-    if(cores.includes(req.params.cor)){
-        res.send(`COR ${req.params.cor}`);
-        return
+// Rota para cadastrar um novo usuário
+app.get('/register', async (req, res) => {
+  const { name, email } = req.query;
+
+  if (!name || !email) {
+    return res.status(400).send('Nome e email são obrigatórios.');
+  }
+
+  try {
+    // Cria um novo usuário no banco de dados
+    const user = await User.create({ name, email });
+    res.status(201).json(user);
+  } catch (error) {
+    console.error('Erro ao cadastrar usuário:', error);
+    res.status(500).send('Erro ao cadastrar usuário');
+  }
+});
+
+app.get('/users', async (req, res) => {
+    try {
+      // Recupera todos os usuários do banco de dados
+      const users = await User.findAll();
+      res.status(200).json(users);
+    } catch (error) {
+      console.error('Erro ao listar usuários:', error);
+      res.status(500).send('Erro ao listar usuários');
     }
+  });
 
-    res.status(400).send( `${req.params.cor} Não é uma cor valida`)
-    
-});
-
-app.post('/cor', (req, res) => {
-    const cores = ['azul','amarerlo','vermelho','roxo']
-
-    if(cores.includes(req.body.cor)){
-        res.json({cor: req.body.cor });
-        return
-    }
-    res.status(400).json({error: `${req.body.cor} Não é uma cor valida` })
-    
-});
-// Iniciar o servidor
-app.listen(port, () => {
-    console.log(`Servidor está rodando em http://localhost:${port}`);
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
